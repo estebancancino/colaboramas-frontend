@@ -11,7 +11,6 @@ import { Monicon } from "@monicon/native";
 import { lightTheme } from "../../../theme";
 import { useRouter } from "expo-router";
 import useSettings from "../../../src/hooks/useSettings";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTranslation } from "react-i18next";
 
 export default function Settings() {
@@ -24,17 +23,9 @@ export default function Settings() {
     fadeAnim,
     openModal,
     closeModal,
+    logout: handleLogout,
   } = useSettings();
   const { t } = useTranslation();
-  // --- Cerrar sesión ---
-  const handleLogout = async () => {
-    try {
-      await AsyncStorage.removeItem("token");
-      router.replace("/auth/login");
-    } catch (e) {
-      console.log("Logout error:", e);
-    }
-  };
 
   return (
     <View className="flex-1 bg-color-light-base-muted-foreground p-4">
