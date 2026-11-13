@@ -59,24 +59,19 @@ export const useProfileEdit = () => {
   };
 
   const pickImage = async () => {
-    // expo-image-picker is not available on web builds by default. Dynamically
-    // import it only on native platforms so web bundling doesn't fail during
-    // development. On web we show a friendly message.
-    if (Platform.OS === "web") {
-      Alert.alert("No disponible en web", "La selección de imagen solo está disponible en la app móvil durante desarrollo.");
-      return;
-    }
-
+    // expo-image-picker funciona también en web (abre el selector de archivos).
     try {
       const ImagePicker = await import("expo-image-picker");
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert("Permiso requerido", "Debes permitir acceso a la galería.");
-        return;
+      if (Platform.OS !== "web") {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert("Permiso requerido", "Debes permitir acceso a la galería.");
+          return;
+        }
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images || ["images"],
+        mediaTypes: ["images"],
         aspect: [1, 1],
         allowsEditing: true,
         quality: 0.8,
