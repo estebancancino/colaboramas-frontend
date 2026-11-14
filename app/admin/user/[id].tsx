@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import api from "../../../client";
 import { lightTheme } from "../../../theme";
 import { LinearGradient } from "expo-linear-gradient";
+import { ASSIGNABLE_ROLES, getPrimaryRole } from "../../../src/utils/roles";
 
 export default function AdminUserDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -18,13 +19,7 @@ export default function AdminUserDetail() {
       try {
         const res = await api.get(`/admin/users/${id}`);
         setUser(res.data);
-        // normalize role value (server may return role objects)
-        const rawRole = res.data?.roles?.[0] ?? res.data?.roles ?? "";
-        let roleStr = "";
-        if (rawRole) {
-          roleStr = typeof rawRole === "object" ? (rawRole.roleName || rawRole.name || JSON.stringify(rawRole)) : String(rawRole);
-        }
-        setRoleEdit(roleStr);
+        setRoleEdit(getPrimaryRole(res.data?.roles));
       } catch (e) {
         // fallback mock
         setUser({ id, username: "Usuario", email: "user@example.com", pais: "Chile", ciudad: "Santiago", lineasInteres: ["IA"], proyectosRecientes: ["Proyecto A"], roles:["ACADEMICO"], banned:false });
@@ -81,7 +76,7 @@ export default function AdminUserDetail() {
     <ScrollView contentContainerStyle={{ paddingBottom: 140 }} keyboardShouldPersistTaps="handled">
       <LinearGradient colors={[headerColor, `${headerColor}CC`]} style={styles.header}>
         <Text style={styles.headerTitle}>{user.username ?? user.nombre ?? "Usuario"}</Text>
-        <Text style={styles.headerSubtitle}>{user.roles ? (Array.isArray(user.roles) ? (typeof user.roles[0] === 'object' ? (user.roles[0].roleName || user.roles[0].name || String(user.roles[0])) : String(user.roles[0])) : (typeof user.roles === 'object' ? (user.roles.roleName || user.roles.name || String(user.roles)) : String(user.roles))) : ""} • {user.email}</Text>
+        <Text style={styles.headerSubtitle}>{getPrimaryRole(user.roles)} • {user.email}</Text>
       </LinearGradient>
 
       <View style={styles.card}>
@@ -102,7 +97,7 @@ export default function AdminUserDetail() {
 
         <View style={styles.rowBetween}>
           <Text style={styles.label}>Rol</Text>
-          <Text style={styles.value}>{Array.isArray(user.roles) ? String(user.roles?.[0]) : String(user.roles)}</Text>
+          <Text style={styles.value}>{getPrimaryRole(user.roles)}</Text>
         </View>
 
         <View style={styles.rowBetween}>
@@ -139,7 +134,8 @@ export default function AdminUserDetail() {
             <View style={styles.modalCard}>
               <Text style={styles.modalTitle}>Seleccionar rol</Text>
               <RNScrollView>
-                {["ADMIN","ACADEMICO","MODERATOR","USER"].map((r) => (
+                {/* Solo los roles que existen en el backend (RoleEnum) */}
+                {ASSIGNABLE_ROLES.map((r) => (
                   <Pressable key={r} style={[styles.modalOption, r === roleEdit ? styles.modalOptionActive : undefined]} onPress={() => { setRoleModalVisible(false); onChangeRole(r); }}>
                     <Text style={styles.modalOptionText}>{r}</Text>
                   </Pressable>
