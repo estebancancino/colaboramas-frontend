@@ -119,7 +119,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // ---- LOGOUT ----
   const signOut = async () => {
-    await AsyncStorage.multiRemove([AUTHTOKEN, AUTHUSER]);
+    // cached_users depende del usuario (excluye sus contactos), no debe pasar a otra cuenta
+    await AsyncStorage.multiRemove([AUTHTOKEN, AUTHUSER, "cached_users"]);
+    delete api.defaults.headers.common["Authorization"];
     setUser(undefined);
     setIsAuthenticated(false);
   };

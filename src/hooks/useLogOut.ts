@@ -1,16 +1,14 @@
-import { useContext } from "react";
-import { UserContext } from "../providers/UserProvider";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+import { useAuth } from "./useAuth";
 
 export const useLogout = () => {
-  const userContext = useContext(UserContext);
+  const { signOut } = useAuth();
   const router = useRouter();
 
   const handleLogout = async () => {
     try {
-      await AsyncStorage.removeItem("auth_user");
-      userContext?.setUser(undefined);
+      // Borra token, usuario y header Authorization
+      await signOut();
 
       // navegar al login reseteando stack
       router.replace("/auth/login");

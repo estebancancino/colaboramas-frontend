@@ -43,12 +43,12 @@ export const useUserCard = () => {
     }
   };
 
-  const getUsersByRelevance = async (query: string) => {
-    if (!query) return getUsers();
-
+  // El backend ordena por relevancia según el perfil del usuario autenticado y
+  // no recibe texto de búsqueda; el filtrado por texto se hace en el cliente.
+  const getUsersByRelevance = async () => {
     try {
       setLoading(true);
-      const response = await api.get<UserCardDTO[]>(`/search/relevance?query=${query}`);
+      const response = await api.get<UserCardDTO[]>("/search/recommendations/by-relevance");
       const mapped = response.data.map(userAdapter.fromCardDto);
 
       setUsers(mapped);

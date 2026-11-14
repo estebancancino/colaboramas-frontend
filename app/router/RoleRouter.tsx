@@ -3,6 +3,7 @@ import { View, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { useUser } from "../../src/hooks/useUser";
 import { useAuth } from "../../src/hooks/useAuth";
+import { getHomeRoute, getRoleNames } from "../../src/utils/roles";
 
 export default function RoleRouter() {
   const router = useRouter();
@@ -25,50 +26,10 @@ export default function RoleRouter() {
       return;
     }
 
-    console.log("[RoleRouter] User loaded:", user);
-    console.log("[RoleRouter] Raw roles:", user.roles);
-
-    const normalizeRole = (r: any): string => {
-      if (!r) return "";
-      if (typeof r === "string") return r.toUpperCase();
-
-      if (typeof r === "object") {
-        const keys = ["name", "nombre", "role", "rol", "code", "type", "label", "value"];
-        for (const k of keys) {
-          if (r[k]) return String(r[k]).toUpperCase();
-        }
-        return JSON.stringify(r).toUpperCase();
-      }
-
-      return String(r).toUpperCase();
-    };
-
-    const rolesArr: string[] = Array.isArray(user.roles)
-      ? user.roles.map(normalizeRole)
-      : [normalizeRole(user.roles)];
-
-    console.log("[RoleRouter] Roles detected:", rolesArr);
-
-    if (rolesArr.some((r) => r.includes("ADMIN"))) {
-      console.log("[RoleRouter] Redirecting → /admin");
-      router.replace("/admin");
-      return;
-    }
-
-    if (rolesArr.some((r) => r.includes("ACADEMICO"))) {
-      console.log("[RoleRouter] Redirecting → /academico");
-      router.replace("/academico");
-      return;
-    }
-
-    if (rolesArr.some((r) => r.includes("COMUNICADOR"))) {
-      console.log("[RoleRouter] Redirecting → /comunicador");
-      router.replace("/comunicador");
-      return;
-    }
-
-    console.log("[RoleRouter] No valid role found → redirect to login");
-    router.replace("/auth/login");
+    // Antes funcionaba por casualidad (buscaba "ACADEMICO" dentro del JSON del rol)
+    const home = getHomeRoute(user.roles);
+    console.log("[RoleRouter] Roles:", getRoleNames(user.roles), "→", home);
+    router.replace(home);
   }, [user, isAuthenticated, loading]);
 
   return (

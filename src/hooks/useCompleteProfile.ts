@@ -1,29 +1,14 @@
 import api from "../../client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useUser } from "../hooks/useUser";
-import { Platform } from "react-native";
+import { buildImageFormData } from "../utils/imageUpload";
 
 const AUTHUSER = "auth_user";
 
 export const useCompleteProfile = () => {
   const { setUser } = useUser();
 const uploadProfileImage = async (userId: number, imageUri: string) => {
-  const form = new FormData();
-
-  if (Platform.OS === "web") {
-    const blob = await fetch(imageUri).then((r) => r.blob());
-    const file = new File([blob], `profile_${userId}.jpg`, {
-      type: blob.type || "image/jpeg",
-    });
-
-    form.append("file", file);
-  } else {
-    form.append("file", {
-      uri: imageUri,
-      type: "image/jpeg",
-      name: `profile_${userId}.jpg`,
-    } as any);
-  }
+  const form = await buildImageFormData(imageUri, `profile_${userId}.jpg`);
 
   const response = await api.post(`/users/upload-image/${userId}`, form, {
     headers: {
@@ -37,18 +22,13 @@ const uploadProfileImage = async (userId: number, imageUri: string) => {
 
   const completeProfile = async (userId: number, formData: any) => {
     try {
-      let imageUrl = null;
-
+      // La subida ya guarda la foto en el usuario; /profiles no recibe la imagen
       if (formData.profileImage) {
-        imageUrl = await uploadProfileImage(userId, formData.profileImage);
+        await uploadProfileImage(userId, formData.profileImage);
       }
 
       const submitData = { ...formData };
       delete submitData.profileImage;
-
-      if (imageUrl) {
-        submitData.profileImageUrl = imageUrl;
-      }
 
       await api.put(`/profiles/${userId}`, submitData);
 
