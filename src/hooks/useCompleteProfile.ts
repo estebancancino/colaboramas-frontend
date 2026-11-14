@@ -22,18 +22,13 @@ const uploadProfileImage = async (userId: number, imageUri: string) => {
 
   const completeProfile = async (userId: number, formData: any) => {
     try {
-      let imageUrl = null;
-
+      // La subida ya guarda la foto en el usuario; /profiles no recibe la imagen
       if (formData.profileImage) {
-        imageUrl = await uploadProfileImage(userId, formData.profileImage);
+        await uploadProfileImage(userId, formData.profileImage);
       }
 
       const submitData = { ...formData };
       delete submitData.profileImage;
-
-      if (imageUrl) {
-        submitData.profileImageUrl = imageUrl;
-      }
 
       await api.put(`/profiles/${userId}`, submitData);
 

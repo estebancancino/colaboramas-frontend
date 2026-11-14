@@ -9,6 +9,7 @@ import countries from "../data/countries.json";
 import researchFields from "../data/research_fields.json";
 import interests from "../data/interest.json";
 import { getLocationCoords } from "../utils/locationUtils";
+import { getHomeRoute } from "../utils/roles";
 
 export const useProfileEdit = () => {
   const { completeProfile } = useCompleteProfile();
@@ -90,13 +91,6 @@ export const useProfileEdit = () => {
     }
   };
 
-  const getHomeRouteByRole = (roles: string[]) => {
-    if (!roles) return "/auth/login";
-    if (roles.includes("ACADEMICO")) return "/academico";
-    if (roles.includes("COMUNICADOR")) return "/comunicador";
-    return "/auth/login";
-  };
-
   const handleSubmit = async () => {
     if (!formData.aceptaTerminos) {
       Alert.alert("Atención", "Debes aceptar los términos y condiciones.");
@@ -129,6 +123,8 @@ export const useProfileEdit = () => {
 
       // Build profile data in the expected format
       const profileData = {
+        // URI local de la foto elegida; completeProfile la sube antes de guardar el perfil
+        profileImage: formData.profileImage || undefined,
         pais: formData.pais,
         ciudad: formData.ciudad,
         latitud: locationCoords?.latitude ?? null,
@@ -146,7 +142,7 @@ export const useProfileEdit = () => {
 
       await AsyncStorage.setItem("auth_user", JSON.stringify(updatedUser));
 
-      router.replace(getHomeRouteByRole(updatedUser.roles));
+      router.replace(getHomeRoute(updatedUser.roles));
       Alert.alert("Éxito", "Perfil guardado correctamente.");
     } catch (err) {
       console.error(err);
