@@ -1,12 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { Animated, Easing } from "react-native";
 import i18n from "../../i18n";
-import { useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTranslation } from "react-i18next";
+import { useLogout } from "./useLogOut";
 
 export default function useSettings() {
-  const router = useRouter();
   const { t } = useTranslation();
 
   const [currentLanguage, setCurrentLanguage] = useState(
@@ -51,10 +49,7 @@ export default function useSettings() {
 
   const closeModal = () => setModalVisible(false);
 
-  const logout = async () => {
-    await AsyncStorage.removeItem("auth_token");
-    router.replace("/auth/login");
-  };
+  const { handleLogout: logout } = useLogout();
 
   const configs = [
     {

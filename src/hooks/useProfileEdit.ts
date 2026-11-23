@@ -9,6 +9,7 @@ import countries from "../data/countries.json";
 import researchFields from "../data/research_fields.json";
 import interests from "../data/interest.json";
 import { getLocationCoords } from "../utils/locationUtils";
+import { getHomeRoute } from "../utils/roles";
 
 export const useProfileEdit = () => {
   const { completeProfile } = useCompleteProfile();
@@ -59,24 +60,19 @@ export const useProfileEdit = () => {
   };
 
   const pickImage = async () => {
-    // expo-image-picker is not available on web builds by default. Dynamically
-    // import it only on native platforms so web bundling doesn't fail during
-    // development. On web we show a friendly message.
-    if (Platform.OS === "web") {
-      Alert.alert("No disponible en web", "La selección de imagen solo está disponible en la app móvil durante desarrollo.");
-      return;
-    }
-
+    // expo-image-picker funciona también en web (abre el selector de archivos).
     try {
       const ImagePicker = await import("expo-image-picker");
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert("Permiso requerido", "Debes permitir acceso a la galería.");
-        return;
+      if (Platform.OS !== "web") {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert("Permiso requerido", "Debes permitir acceso a la galería.");
+          return;
+        }
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images || ["images"],
+        mediaTypes: ["images"],
         aspect: [1, 1],
         allowsEditing: true,
         quality: 0.8,
@@ -93,13 +89,6 @@ export const useProfileEdit = () => {
       console.warn("expo-image-picker not available:", err);
       Alert.alert("Error", "No se pudo abrir el selector de imágenes.");
     }
-  };
-
-  const getHomeRouteByRole = (roles: string[]) => {
-    if (!roles) return "/auth/login";
-    if (roles.includes("ACADEMICO")) return "/academico";
-    if (roles.includes("COMUNICADOR")) return "/comunicador";
-    return "/auth/login";
   };
 
   const handleSubmit = async () => {
@@ -134,6 +123,8 @@ export const useProfileEdit = () => {
 
       // Build profile data in the expected format
       const profileData = {
+        // URI local de la foto elegida; completeProfile la sube antes de guardar el perfil
+        profileImage: formData.profileImage || undefined,
         pais: formData.pais,
         ciudad: formData.ciudad,
         latitud: locationCoords?.latitude ?? null,
@@ -151,7 +142,7 @@ export const useProfileEdit = () => {
 
       await AsyncStorage.setItem("auth_user", JSON.stringify(updatedUser));
 
-      router.replace(getHomeRouteByRole(updatedUser.roles));
+      router.replace(getHomeRoute(updatedUser.roles));
       Alert.alert("Éxito", "Perfil guardado correctamente.");
     } catch (err) {
       console.error(err);

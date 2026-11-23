@@ -16,6 +16,7 @@ import { lightTheme } from "../../../theme";
 import { EventItem } from "../../components/EventCard";
 import api from "../../../client";
 import { useUser } from "../../../src/hooks/useUser";
+import { toLocalDateTimeString } from "../../../src/utils/date";
 // DateTimePickerModal will be required lazily (only on native platforms)
 
 export default function CreateEventScreen() {
@@ -34,8 +35,8 @@ export default function CreateEventScreen() {
   const showDatePicker = () => setDatePickerVisible(true);
   const hideDatePicker = () => setDatePickerVisible(false);
   const handleConfirm = (selectedDate: Date) => {
-    // store ISO format expected by backend
-    setDate(selectedDate.toISOString());
+    // Hora local sin zona (LocalDateTime del backend)
+    setDate(toLocalDateTimeString(selectedDate));
     hideDatePicker();
   };
 
@@ -114,12 +115,11 @@ export default function CreateEventScreen() {
             // Use native HTML datetime-local input on web
             <input
               type="datetime-local"
-              value={date ? new Date(date).toISOString().slice(0, 16) : ""}
+              value={date ? date.slice(0, 16) : ""}
               onChange={(e: any) => {
+                // datetime-local ya entrega la hora local ("2026-12-05T18:30")
                 const v = e.target.value;
-                if (!v) return setDate("");
-                const iso = new Date(v).toISOString();
-                setDate(iso);
+                setDate(v ? `${v}:00` : "");
               }}
               style={{
                 width: '100%',

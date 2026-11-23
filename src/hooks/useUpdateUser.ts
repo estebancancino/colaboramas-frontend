@@ -1,7 +1,7 @@
 // src/hooks/useUpdateUser.ts
 import api from "../../client";
 import { useUser } from "./useUser";
-import { Alert } from "react-native";
+import { buildImageFormData } from "../utils/imageUpload";
 
 export const useUpdateUser = () => {
   const { user } = useUser();
@@ -20,12 +20,11 @@ export const useUpdateUser = () => {
   const uploadProfileImage = async (imageAsset: any) => {
     if (!user) throw new Error("No user logged");
 
-    const formData = new FormData();
-    formData.append("file", {
-      uri: imageAsset.uri,
-      name: "profile.jpg",
-      type: "image/jpeg",
-    });
+    const formData = await buildImageFormData(
+      imageAsset.uri,
+      imageAsset.fileName || `profile_${user.id}.jpg`,
+      imageAsset.mimeType
+    );
 
     const response = await api.post(
       `/users/upload-image/${user.id}`,
