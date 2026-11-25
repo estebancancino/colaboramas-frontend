@@ -8,12 +8,17 @@ import {
   StyleSheet,
   Animated,
   Easing,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTranslation } from "react-i18next";
 import { lightTheme } from "../../theme";
 import { useContacts } from "../../src/hooks/useContact";
-import { useUser } from "../../src/hooks/useUser";
+import { showAlert } from "../../src/utils/alerts";
+
+// Deben coincidir con @Size de MessageRequestDto en el backend
+const MAX_SUBJECT = 120;
+const MAX_MESSAGE = 1000;
 
 type Props = {
   visible: boolean;
@@ -30,7 +35,9 @@ export default function SendMessageModal({
   recipientName,
   onContactSent,
 }: Props) {
-  const { user: currentUser } = useUser();
+  const [sending, setSending] = useState(false);
+  // El ref bloquea al instante (dos toques seguidos llegan antes de que el estado se actualice)
+  const sendingRef = useRef(false);
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -74,32 +81,51 @@ export default function SendMessageModal({
   }, [error]);
 
   const handleSend = async () => {
+    // Evita el doble toque: mientras se envía, el botón no hace nada
+    if (sendingRef.current) return;
     if (!subject.trim() || !message.trim()) {
       setError(t("sendMessageModal.errorEmptyFields"));
       return;
     }
 
-     try {
-        await sendMessage({
-          fromUserId: currentUser.id,
-          toUserId: recipientId,
-          subject,
-          message,
-        });
+    sendingRef.current = true;
+    setSending(true);
+    try {
+      // El remitente lo toma el backend del token
+      await sendMessage({
+        toUserId: recipientId,
+        subject: subject.trim(),
+        message: message.trim(),
+      });
 
-        setSubject("");
-        setMessage("");
-        setError("");
-        onClose();
-        onContactSent(recipientId);
-      } catch (err) {
-        console.log(err);
+      setSubject("");
+      setMessage("");
+      setError("");
+      onClose();
+      onContactSent(recipientId);
+      showAlert(
+        t("sendMessageModal.sentTitle"),
+        t("sendMessageModal.sentBody", { name: recipientName })
+      );
+    } catch (err: any) {
+      const status = err?.response?.status;
+      if (status === 409) {
+        setError(t("sendMessageModal.errorDuplicate"));
+      } else if (status === 429) {
+        setError(t("sendMessageModal.errorRateLimit"));
+      } else if (status === 400) {
+        setError(t("sendMessageModal.errorTooLong"));
+      } else {
         setError(t("sendMessageModal.errorSending"));
       }
+    } finally {
+      sendingRef.current = false;
+      setSending(false);
+    }
   };
 
   return (
-    <Modal transparent visible={visible} animationType="none">
+    <Modal transparent visible={visible} animationType="none" onRequestClose={onClose}>
       <Animated.View style={[styles.overlay, { opacity: opacityAnim }]}>
         <Animated.View
           style={[styles.container, { transform: [{ scale: scaleAnim }] }]}
@@ -112,6 +138,9 @@ export default function SendMessageModal({
           <TextInput
             style={styles.input}
             placeholder={t("sendMessageModal.subjectPlaceholder")}
+            placeholderTextColor="#999"
+            maxLength={MAX_SUBJECT}
+            editable={!sending}
             value={subject}
             onChangeText={(text) => {
               setSubject(text);
@@ -121,6 +150,9 @@ export default function SendMessageModal({
           <TextInput
             style={[styles.input, styles.textarea]}
             placeholder={t("sendMessageModal.messagePlaceholder")}
+            placeholderTextColor="#999"
+            maxLength={MAX_MESSAGE}
+            editable={!sending}
             value={message}
             onChangeText={(text) => {
               setMessage(text);
@@ -128,6 +160,9 @@ export default function SendMessageModal({
             }}
             multiline
           />
+          <Text style={styles.counter}>
+            {t("sendMessageModal.counter", { count: message.length, max: MAX_MESSAGE })}
+          </Text>
 
           {error ? (
             <Animated.Text
@@ -141,13 +176,13 @@ export default function SendMessageModal({
           ) : null}
 
           <View style={styles.actions}>
-            <TouchableOpacity style={styles.cancel} onPress={onClose}>
+            <TouchableOpacity style={styles.cancel} onPress={onClose} disabled={sending}>
               <Text style={styles.cancelText}>
                 {t("sendMessageModal.cancel")}
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={handleSend}>
+            <TouchableOpacity onPress={handleSend} disabled={sending} style={{ opacity: sending ? 0.6 : 1 }}>
               <LinearGradient
                 colors={[
                   lightTheme.colors["primary-pink"],
@@ -157,9 +192,14 @@ export default function SendMessageModal({
                 end={{ x: 1, y: 1 }}
                 style={styles.send}
               >
-                <Text style={styles.sendText}>
-                  {t("sendMessageModal.send")}
-                </Text>
+                {sending ? (
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                    <ActivityIndicator size="small" color="#fff" />
+                    <Text style={styles.sendText}>{t("sendMessageModal.sending")}</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.sendText}>{t("sendMessageModal.send")}</Text>
+                )}
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -201,6 +241,12 @@ const styles = StyleSheet.create({
     padding: 10,
     marginVertical: 6,
     fontSize: 14,
+    color: "#222",
+  },
+  counter: {
+    alignSelf: "flex-end",
+    fontSize: 11,
+    color: "#888",
   },
   textarea: {
     height: 100,

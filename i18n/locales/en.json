@@ -13,7 +13,8 @@
       "Concurso": "Contest",
       "Charla": "Talk",
       "Conferencia": "Conference"
-    }
+    },
+    "back": "Back"
   },
   "settings": {
     "title": "Settings",
@@ -38,7 +39,15 @@
     "messagePlaceholder": "Write your message...",
     "cancel": "Cancel",
     "send": "Send",
-    "errorEmptyFields": "You must complete all fields."
+    "errorEmptyFields": "You must complete all fields.",
+    "errorSending": "The message could not be sent. Please try again.",
+    "errorDuplicate": "There is already a request between you. Check it in Contacts.",
+    "errorTooLong": "The message is too long.",
+    "sending": "Sending...",
+    "sentTitle": "Request sent",
+    "sentBody": "Your message was sent to {{name}}.",
+    "errorRateLimit": "You reached today’s request limit. Try again tomorrow.",
+    "counter": "{{count}}/{{max}}"
   },
   "multiSelect": {
     "placeholder": "Select...",
@@ -56,12 +65,27 @@
     "empty": "There are no {{type}} requests.",
     "actions": {
       "accept": "Accept",
-      "reject": "Reject"
+      "reject": "Reject",
+      "report": "Report"
     },
     "status": {
       "pending": "Pending",
       "accepted": "Accepted",
-      "rejected": "Rejected"
+      "rejected": "Rejected",
+      "youAccepted": "You accepted it",
+      "youRejected": "You rejected it"
+    },
+    "confirm": {
+      "cancel": "Cancel",
+      "acceptTitle": "Accept request",
+      "acceptBody": "Accept the contact request from {{name}}?",
+      "rejectTitle": "Reject request",
+      "rejectBody": "Reject the contact request from {{name}}? This cannot be undone.",
+      "reportTitle": "Report user",
+      "reportBody": "Report {{name}} for inappropriate content? Reports are reviewed by an administrator.",
+      "reportDone": "Report sent. Thanks for letting us know.",
+      "reportError": "The report could not be sent.",
+      "respondError": "The request could not be answered."
     }
   },
   "bottomBar": {
@@ -108,5 +132,3 @@
     }
   }
 }
-
-

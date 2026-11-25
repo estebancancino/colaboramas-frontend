@@ -13,7 +13,8 @@
       "Concurso": "Concurso",
       "Charla": "Charla",
       "Conferencia": "Conferencia"
-    }
+    },
+    "back": "Volver"
   },
   "settings": {
     "title": "Configuración",
@@ -38,7 +39,15 @@
     "messagePlaceholder": "Escribe tu mensaje...",
     "cancel": "Cancelar",
     "send": "Enviar",
-    "errorEmptyFields": "Debes completar todos los campos."
+    "errorEmptyFields": "Debes completar todos los campos.",
+    "errorSending": "No se pudo enviar el mensaje. Inténtalo de nuevo.",
+    "errorDuplicate": "Ya existe una solicitud entre ustedes. Revísala en la sección Contactos.",
+    "errorTooLong": "El mensaje es demasiado largo.",
+    "sending": "Enviando...",
+    "sentTitle": "Solicitud enviada",
+    "sentBody": "Tu mensaje fue enviado a {{name}}.",
+    "errorRateLimit": "Alcanzaste el máximo de solicitudes por hoy. Inténtalo mañana.",
+    "counter": "{{count}}/{{max}}"
   },
   "multiSelect": {
     "placeholder": "Seleccionar...",
@@ -56,12 +65,27 @@
     "empty": "No hay solicitudes {{type}}.",
     "actions": {
       "accept": "Aceptar",
-      "reject": "Rechazar"
+      "reject": "Rechazar",
+      "report": "Reportar"
     },
     "status": {
       "pending": "Pendiente",
       "accepted": "Aceptada",
-      "rejected": "Rechazada"
+      "rejected": "Rechazada",
+      "youAccepted": "La aceptaste",
+      "youRejected": "La rechazaste"
+    },
+    "confirm": {
+      "cancel": "Cancelar",
+      "acceptTitle": "Aceptar solicitud",
+      "acceptBody": "¿Aceptar la solicitud de contacto de {{name}}?",
+      "rejectTitle": "Rechazar solicitud",
+      "rejectBody": "¿Rechazar la solicitud de contacto de {{name}}? Esta acción no se puede deshacer.",
+      "reportTitle": "Reportar usuario",
+      "reportBody": "¿Reportar a {{name}} por contenido inapropiado? Los reportes los revisa un administrador.",
+      "reportDone": "Reporte enviado. Gracias por avisarnos.",
+      "reportError": "No se pudo enviar el reporte.",
+      "respondError": "No se pudo responder la solicitud."
     }
   },
   "search": {
@@ -107,8 +131,4 @@
       "pais": "País"
     }
   }
-
 }
-
-
-

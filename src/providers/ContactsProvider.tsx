@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from "react";
+import React, { createContext, useEffect, useMemo, useState } from "react";
 import api from "../../client";
 import { useUser } from "../hooks/useUser";
 import { useAuth } from "../hooks/useAuth";
@@ -63,25 +63,29 @@ export const ContactsProvider = ({ children }) => {
     }
   }, [isAuthenticated, userId]);
 
-  const sendMessage = async (payload: any) => {
-    if (!isAuthenticated || !userId) return;
-    try {
-      await api.post(`/messages/send`, payload);
-      await loadMessages(); // actualizar lista enviada
-    } catch (err) {
-      console.error("Error enviando mensaje:", err);
+  // Usuarios con los que ya hay alguna solicitud (en cualquier sentido y estado):
+  // se ocultan de las recomendaciones para no ofrecer "Contactar" de nuevo.
+  const contactedUserIds = useMemo(() => {
+    const ids = new Set<number>();
+    for (const m of [...sentMessages, ...receivedMessages, ...repliedMessages]) {
+      if (m.fromUserId != null && m.fromUserId !== userId) ids.add(Number(m.fromUserId));
+      if (m.toUserId != null && m.toUserId !== userId) ids.add(Number(m.toUserId));
     }
+    return ids;
+  }, [sentMessages, receivedMessages, repliedMessages, userId]);
+
+  // Los errores se propagan para que la pantalla muestre el motivo (409 duplicado, 429 límite...)
+  const sendMessage = async (payload: { toUserId: number; subject: string; message: string }) => {
+    if (!isAuthenticated || !userId) throw new Error("Not authenticated");
+    await api.post(`/messages/send`, payload);
+    await loadMessages(); // actualizar lista enviada
   };
 
   const respondToMessage = async (id: string, accepted: boolean) => {
-    if (!isAuthenticated || !userId) return;
+    if (!isAuthenticated || !userId) throw new Error("Not authenticated");
     const status = accepted ? "accepted" : "rejected";
-    try {
-      await api.put(`/messages/${id}/respond?status=${status}`);
-      await loadMessages(); // actualizar listas
-    } catch (err) {
-      console.error("Error respondiendo mensaje:", err);
-    }
+    await api.put(`/messages/${id}/respond?status=${status}`);
+    await loadMessages(); // actualizar listas
   };
 
   const reportUser = async (targetUserId: number) => {
@@ -101,6 +105,7 @@ export const ContactsProvider = ({ children }) => {
         sentMessages,
         receivedMessages,
         repliedMessages,
+        contactedUserIds,
         notifications,
         setNotifications,
         sendMessage,

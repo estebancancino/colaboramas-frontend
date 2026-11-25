@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Image } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { View, Text, StyleSheet, ScrollView, Image, Pressable } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { ArrowLeft } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { LinearGradient } from "expo-linear-gradient";
 import { lightTheme } from "../../../../theme";
 import { EventItem } from "../../../components/EventCardRight";
@@ -11,6 +13,14 @@ type Params = { id?: string };
 export default function AcademicoEventDetail() {
   const params = useLocalSearchParams() as Params;
   const id = params.id ?? "";
+  const router = useRouter();
+  const { t } = useTranslation();
+
+  // Si se abrió directo (sin historial), vuelve a la lista de eventos
+  const goBack = () => {
+    if (router.canGoBack()) router.back();
+    else router.replace("/academico/events");
+  };
 
   const [event, setEvent] = useState<EventItem | null>(null);
 
@@ -51,7 +61,27 @@ export default function AcademicoEventDetail() {
     fetchEventDetail();
   }, [id]);
 
-  if (!event) return <Text style={{ padding: 16 }}>Cargando...</Text>;
+  const backButton = (light: boolean) => (
+    <Pressable
+      onPress={goBack}
+      hitSlop={10}
+      accessibilityRole="button"
+      accessibilityLabel={t("event.back")}
+      style={[styles.backButton, light ? styles.backButtonLight : styles.backButtonDark]}
+    >
+      <ArrowLeft size={18} color={light ? "#fff" : "#333"} />
+      <Text style={[styles.backText, { color: light ? "#fff" : "#333" }]}>{t("event.back")}</Text>
+    </Pressable>
+  );
+
+  if (!event) {
+    return (
+      <View style={{ padding: 16 }}>
+        {backButton(false)}
+        <Text style={{ marginTop: 16 }}>Cargando...</Text>
+      </View>
+    );
+  }
 
   const TYPE_COLOR: Record<string, string> = {
     Congreso: "#6B31E8",
@@ -74,6 +104,7 @@ export default function AcademicoEventDetail() {
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <LinearGradient colors={[color, `${color}CC`]} style={styles.header}>
+        {backButton(true)}
         <Text style={styles.headerTitle}>{event.title}</Text>
         <Text style={styles.headerSubtitle}>{event.type} • {formattedDate}{formattedTime ? ` • ${formattedTime}` : ""}</Text>
       </LinearGradient>
@@ -112,10 +143,23 @@ const styles = StyleSheet.create({
     backgroundColor: "#F6F6F6",
   },
   header: {
-    paddingTop: 56,
+    paddingTop: 16,
     paddingBottom: 20,
     paddingHorizontal: 20,
   },
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    marginBottom: 16,
+  },
+  backButtonLight: { backgroundColor: "rgba(255,255,255,0.22)" },
+  backButtonDark: { backgroundColor: "#ECECEC" },
+  backText: { fontWeight: "700", fontSize: 14 },
   headerTitle: {
     color: "#fff",
     fontSize: 24,

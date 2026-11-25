@@ -1,9 +1,10 @@
 // src/hooks/useUserCard.ts
-import { useEffect, useState, useRef } from "react";
+import { useContext, useEffect, useMemo, useState, useRef } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../../client";
 import { UserCardDTO } from "../models/userCard.dto";
 import { userAdapter } from "../adapters/user.adapter";
+import { ContactsContext } from "../providers/ContactsProvider";
 
 export const useUserCard = () => {
   const [users, setUsers] = useState<UserCardDTO[]>([]);
@@ -66,5 +67,17 @@ export const useUserCard = () => {
     getUsers();
   }, []);
 
-  return { users, loading, error, refresh: getUsers, getUsersByRelevance };
+  // Quita a quienes ya tienen una solicitud con el usuario (enviada, recibida o respondida):
+  // el backend no permite repetirla, así que no se ofrece "Contactar" otra vez.
+  const contacts = useContext(ContactsContext) as { contactedUserIds?: Set<number> } | undefined;
+  const contactedUserIds = contacts?.contactedUserIds;
+  const visibleUsers = useMemo(
+    () =>
+      contactedUserIds && contactedUserIds.size > 0
+        ? users.filter((u) => !contactedUserIds.has(Number(u.id)))
+        : users,
+    [users, contactedUserIds]
+  );
+
+  return { users: visibleUsers, loading, error, refresh: getUsers, getUsersByRelevance };
 };

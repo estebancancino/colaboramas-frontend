@@ -13,17 +13,17 @@ import Select from "../components/AuthSelect";
 import MultiSelectDropdown from "../components/MultiSelectDropdown";
 import { useProfileEdit } from "../../src/hooks/useProfileEdit";
 import AuthLayout from "../layouts/authLayout";
-import { useRouter } from "expo-router";
 import { Monicon } from "@monicon/native";
 
 export default function ProfileEditView() {
-  const router = useRouter();
 
   const {
     formData,
     handleChange,
     pickImage,
     handleSubmit,
+    submitting,
+    skipProfile,
     countries,
     filteredCities,
     researchFieldsList,
@@ -34,7 +34,7 @@ export default function ProfileEditView() {
   } = useProfileEdit();
 
   return (
-    <AuthLayout title="Crear Cuenta" card cardGradient showLogo={false}>
+    <AuthLayout title="Completa tu perfil" card cardGradient showLogo={false}>
    
       <View className={Platform.OS === "web" ? "pb-4" : ""}>
         {/* FOTO */}
@@ -185,27 +185,20 @@ export default function ProfileEditView() {
         </View>
       </View>
 
-      {/* BOTONES */}
-      <View className="flex-row gap-3">
-        <TouchableOpacity className="flex-1 border border-white py-3 rounded-lg items-center">
-          <Text className="text-white">Volver</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          className="flex-1 bg-white py-3 rounded-lg items-center"
-          onPress={handleSubmit}
-        >
-          <Text className="text-purple-700 font-bold">Registrar</Text>
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity>
-        <Text className="text-white text-center mt-3 underline">Omitir</Text>
+      {/* BOTONES (la cuenta ya está creada: no hay "Volver" al registro ni enlace a login) */}
+      <TouchableOpacity
+        className="bg-white py-3 rounded-lg items-center"
+        disabled={submitting}
+        style={{ opacity: submitting ? 0.6 : 1 }}
+        onPress={handleSubmit}
+      >
+        <Text className="text-purple-700 font-bold">
+          {submitting ? "Guardando..." : "Guardar perfil"}
+        </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push("/auth/login")}>
-        <Text className="text-center text-blue-300 underline text-sm mt-2">
-          ¿Ya tienes cuenta? Inicia sesión
-        </Text>
+      <TouchableOpacity disabled={submitting} onPress={skipProfile}>
+        <Text className="text-white text-center mt-3 underline">Omitir por ahora</Text>
       </TouchableOpacity>
     </AuthLayout>
   );

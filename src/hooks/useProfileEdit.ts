@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Alert, Platform } from "react-native";
+import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 
@@ -10,12 +10,15 @@ import researchFields from "../data/research_fields.json";
 import interests from "../data/interest.json";
 import { getLocationCoords } from "../utils/locationUtils";
 import { getHomeRoute } from "../utils/roles";
+import { showAlert } from "../utils/alerts";
 
 export const useProfileEdit = () => {
   const { completeProfile } = useCompleteProfile();
   const { user } = useUser();
   const router = useRouter();
   const cityCache = useRef({});
+  const [submitting, setSubmitting] = useState(false);
+  const submittingRef = useRef(false);
 
   const [formData, setFormData] = useState({
     profileImage: "",
@@ -66,7 +69,7 @@ export const useProfileEdit = () => {
       if (Platform.OS !== "web") {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== "granted") {
-          Alert.alert("Permiso requerido", "Debes permitir acceso a la galería.");
+          showAlert("Permiso requerido", "Debes permitir acceso a la galería para elegir una foto.");
           return;
         }
       }
@@ -87,21 +90,25 @@ export const useProfileEdit = () => {
       }
     } catch (err) {
       console.warn("expo-image-picker not available:", err);
-      Alert.alert("Error", "No se pudo abrir el selector de imágenes.");
+      showAlert("Error", "No se pudo abrir el selector de imágenes.");
     }
   };
 
   const handleSubmit = async () => {
+    if (submittingRef.current) return; // evita enviar dos veces con doble toque
+
     if (!formData.aceptaTerminos) {
-      Alert.alert("Atención", "Debes aceptar los términos y condiciones.");
+      showAlert("Falta un paso", "Debes aceptar los términos y condiciones.");
       return;
     }
 
     if (formData.camposInvestigacion.length === 0 && formData.lineasInteres.length === 0) {
-      Alert.alert("Atención", "Debes seleccionar al menos un campo de investigación o línea de interés.");
+      showAlert("Falta un paso", "Selecciona al menos un campo de investigación o una línea de interés.");
       return;
     }
 
+    submittingRef.current = true;
+    setSubmitting(true);
     try {
       // Fetch location from device GPS or geocode from city/country
       const locationCoords = await getLocationCoords(
@@ -142,12 +149,30 @@ export const useProfileEdit = () => {
 
       await AsyncStorage.setItem("auth_user", JSON.stringify(updatedUser));
 
-      router.replace(getHomeRoute(updatedUser.roles));
-      Alert.alert("Éxito", "Perfil guardado correctamente.");
-    } catch (err) {
+      // Primero el aviso y, al cerrarlo, al inicio (antes se navegaba y el aviso quedaba encima de otra pantalla)
+      showAlert(
+        "¡Perfil creado!",
+        "Tu perfil quedó guardado. Ya puedes buscar personas y contactarlas.",
+        () => router.replace(getHomeRoute(updatedUser.roles))
+      );
+    } catch (err: any) {
       console.error(err);
-      Alert.alert("Error", "No se pudo guardar el perfil.");
+      const imageFailed = String(err?.config?.url ?? "").includes("/upload-image/");
+      showAlert(
+        "No se pudo guardar el perfil",
+        imageFailed
+          ? "No se pudo subir la foto. Prueba con otra imagen o continúa sin foto."
+          : "Revisa tu conexión e inténtalo de nuevo."
+      );
+    } finally {
+      submittingRef.current = false;
+      setSubmitting(false);
     }
+  };
+
+  // "Omitir": entra a la app sin completar el perfil (se puede completar después en Perfil)
+  const skipProfile = () => {
+    router.replace(getHomeRoute(user?.roles));
   };
 
   const addEducationEntry = () => {
@@ -195,6 +220,8 @@ export const useProfileEdit = () => {
     handleChange,
     pickImage,
     handleSubmit,
+    submitting,
+    skipProfile,
     addEducationEntry,
     removeEducationEntry,
     updateEducationEntry,

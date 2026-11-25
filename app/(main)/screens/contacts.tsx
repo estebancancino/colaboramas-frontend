@@ -1,13 +1,23 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { lightTheme } from "../../../theme";
 import ContactsTab from "../../components/ContactsTab";
 import { useTranslation } from "react-i18next";
+import { useFocusEffect } from "expo-router";
+import { useContacts } from "../../../src/hooks/useContact";
 
 export default function ContactsScreen() {
   const { t } = useTranslation();
   const [tab, setTab] = useState<"recibidas" | "enviadas" | "contestadas">("recibidas");
+  const { reloadMessages } = useContacts();
+
+  // Recarga al entrar: si no, se ven solicitudes/estados de cuando se inició sesión
+  useFocusEffect(
+    useCallback(() => {
+      reloadMessages();
+    }, [])
+  );
 
   return (
     <View className="flex-1 bg-white items-center pt-5">
