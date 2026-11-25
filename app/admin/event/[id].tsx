@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Platform, Modal, Pressable, ScrollView as RNScrollView, Image } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
+import { ArrowLeft } from "lucide-react-native";
 import { lightTheme } from "../../../theme";
 import { EventItem } from "../../components/EventCard";
 import api from "../../../client";
@@ -124,6 +125,16 @@ export default function AdminEventDetails() {
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <LinearGradient colors={[color, `${color}CC`]} style={styles.header}>
+        <Pressable
+          onPress={() => (router.canGoBack() ? router.back() : router.replace("/admin/events"))}
+          hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel="Volver"
+          style={styles.backButton}
+        >
+          <ArrowLeft size={18} color="#fff" />
+          <Text style={styles.backText}>Volver</Text>
+        </Pressable>
         <Text style={styles.headerTitle}>{event.title}</Text>
         <Text style={styles.headerSubtitle}>{event.type} • {event.date}</Text>
       </LinearGradient>
@@ -203,10 +214,22 @@ const styles = StyleSheet.create({
     backgroundColor: "#F6F6F6",
   },
   header: {
-    paddingTop: 56,
+    paddingTop: 16,
     paddingBottom: 20,
     paddingHorizontal: 20,
   },
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    marginBottom: 16,
+    backgroundColor: "rgba(255,255,255,0.22)",
+  },
+  backText: { color: "#fff", fontWeight: "700", fontSize: 14 },
   headerTitle: {
     color: "#fff",
     fontSize: 24,
