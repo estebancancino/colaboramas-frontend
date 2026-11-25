@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, ReactNode, useEffect, useState } from "react";
 import api from "../../client";
 import { useUser } from "../hooks/useUser";
+import { showAlert } from "../utils/alerts";
 
 const AUTHTOKEN = "auth_token";
 const AUTHUSER = "auth_user";
@@ -113,6 +114,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return true;
     } catch (error) {
       console.error("Error registrando:", error);
+      // Antes fallaba en silencio (p. ej. correo ya registrado) y el botón parecía no hacer nada
+      showAlert(
+        "No se pudo crear la cuenta",
+        "Revisa tus datos. Si el correo ya está registrado, inicia sesión."
+      );
       return false;
     }
   };
