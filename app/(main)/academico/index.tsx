@@ -1,7 +1,7 @@
 // HomeScreen.tsx
 import React, { useEffect, useState } from "react";
 import EventCardRight, { EventItem } from "../../components/EventCardRight";
-import { View, Text, ScrollView, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, ActivityIndicator, useWindowDimensions } from "react-native";
 import { useRouter } from "expo-router";
 import UserCard from "../../components/UserCard";
 import { useTranslation } from "react-i18next";
@@ -68,10 +68,15 @@ export default function HomeScreen() {
   }, []);
 
   const router = useRouter();
+  const { width: screenWidth } = useWindowDimensions();
+  // Tarjeta de evento del carrusel: deja asomar la siguiente en pantallas chicas
+  const eventCardWidth = Math.min(420, screenWidth - 64);
 
   return (
-    <View style={{ backgroundColor: "#FFF" }}>
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 20 }}>
+    // flex: 1 hace que el ScrollView tenga alto acotado y pueda desplazarse;
+    // el paddingBottom deja el contenido por encima de la barra inferior (absoluta).
+    <View style={{ flex: 1, backgroundColor: "#FFF" }}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 110 }}>
         <Text style={{ fontSize: 22, fontWeight: "bold", marginBottom: 8 }}>
           {t("home.recommendations")}
         </Text>
@@ -108,7 +113,8 @@ export default function HomeScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingLeft: 20, paddingVertical: 4 }}
+          style={{ marginHorizontal: -20 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 4 }}
         >
           {eventsLoading ? (
             <View style={{ paddingVertical: 20 }}>
@@ -118,7 +124,7 @@ export default function HomeScreen() {
             <Text style={{ color: "red" }}>{eventsError}</Text>
           ) : (
             events.map((ev) => (
-              <View key={ev.id} style={{ marginRight: 12, minWidth: 320 }}>
+              <View key={ev.id} style={{ marginRight: 12, width: eventCardWidth }}>
                 <EventCardRight event={ev} onPress={() => router.push(`/academico/event/${ev.id}`)} />
               </View>
             ))

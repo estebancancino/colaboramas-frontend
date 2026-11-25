@@ -31,7 +31,7 @@ export default function EventCardRight({ event, onPress }: Props) {
   const color = TYPE_COLOR[event.type] ?? "#6B31E8";
   const [modalVisible, setModalVisible] = useState(false);
   const { width: screenWidth } = useWindowDimensions();
-  const cardWidth = Math.round(Math.min(440, Math.max(320, screenWidth * 0.75)));
+  const cardWidth = Math.round(Math.min(440, Math.max(260, screenWidth * 0.75)));
 
   const displayTitle = event.title.replace(
     new RegExp(`^\\s*${event.type}\\s*[:\\-–—]\\s*`, "i"),

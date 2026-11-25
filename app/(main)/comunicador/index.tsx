@@ -30,7 +30,7 @@ export default function HomeLimitedScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: "#FFF" }}>
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 80 }}>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 110 }}>
         <Text style={{ fontSize: 22, fontWeight: "bold", marginBottom: 8 }}>
           {t("home.recommendations")}
         </Text>
