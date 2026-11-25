@@ -5,7 +5,6 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Alert,
   Image,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
@@ -15,6 +14,7 @@ import { useUser } from "../../../src/hooks/useUser";
 import { useLogout } from "../../../src/hooks/useLogOut";
 import { useUpdateUser } from "../../../src/hooks/useUpdateUser";
 import { useTranslation } from "react-i18next";
+import { showAlert } from "../../../src/utils/alerts";
 
 export default function ProfileScreen() {
   const { t } = useTranslation();
@@ -46,7 +46,10 @@ export default function ProfileScreen() {
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
       allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
       base64: false,
     });
 
@@ -56,7 +59,7 @@ export default function ProfileScreen() {
         setForm((prev) => ({ ...prev, imageUrl: newUrl }));
         await refreshUser();
       } catch (e) {
-        Alert.alert(t("profile.error"), t("profile.imageUploadError"));
+        showAlert(t("profile.error"), t("profile.imageUploadError"));
       }
     }
   };
@@ -75,9 +78,9 @@ export default function ProfileScreen() {
       await refreshUser();
       setIsEditing(false);
 
-      Alert.alert(t("profile.success"), t("profile.updated"));
+      showAlert(t("profile.success"), t("profile.updated"));
     } catch (error) {
-      Alert.alert(t("profile.error"), t("profile.updateError"));
+      showAlert(t("profile.error"), t("profile.updateError"));
     }
   };
 
@@ -103,7 +106,7 @@ export default function ProfileScreen() {
         className="self-end mr-5 mb-2 bg-primary-purple px-4 py-2 rounded-xl"
         onPress={() => setIsEditing(true)}
       >
-        <Text className="text-black font-semibold">
+        <Text className="text-white font-semibold">
           {t("profile.edit")}
         </Text>
       </TouchableOpacity>

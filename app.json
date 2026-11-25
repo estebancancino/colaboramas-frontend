@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "colaboramasfrontend",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
@@ -41,6 +41,7 @@
           }
         }
       ],
+      "./plugins/withCropToolbarColors",
       "expo-font",
       "expo-web-browser",
       "@react-native-firebase/app",
